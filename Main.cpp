@@ -11,7 +11,7 @@ struct   LongExposure {
 			TVPThrowExceptionMessage(TJS_W("LongExposure.init: invalid layer image"));
 		size_t len = width * height * 4;
 		buffer = new tjs_uint32[len];
-		ZeroMemory(buffer, sizeof(tjs_uint32)*len);
+		memset(buffer, 0, sizeof(tjs_uint32)*len);
 	}
 
 	void snap() {
