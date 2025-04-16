@@ -10,8 +10,8 @@ struct   LongExposure {
 		if (!GetLayerSize(self, width, height))
 			TVPThrowExceptionMessage(TJS_W("LongExposure.init: invalid layer image"));
 		size_t len = width * height * 4;
-		buffer = new DWORD[len];
-		ZeroMemory(buffer, sizeof(DWORD)*len);
+		buffer = new tjs_uint32[len];
+		ZeroMemory(buffer, sizeof(tjs_uint32)*len);
 	}
 
 	void snap() {
@@ -23,51 +23,51 @@ struct   LongExposure {
 		if (curw != width || curh != height)
 			TVPThrowExceptionMessage(TJS_W("LongExposure.snap: invalid layer size"));
 
-		const BYTE *ptr = 0;
+		const tjs_uint8 *ptr = 0;
 		long pitch = 0;
 		GetLayerImage(self, ptr, pitch);
 
 		for (size_t y = 0; y < height; y++) {
-			DWORD* w = buffer + width*4 * y;
-			const BYTE* r = ptr + pitch * y;
+			tjs_uint32* w = buffer + width*4 * y;
+			const tjs_uint8* r = ptr + pitch * y;
 			for (size_t x = 0; x < width; x++) {
-				*w++ += (DWORD)(*r++);
-				*w++ += (DWORD)(*r++);
-				*w++ += (DWORD)(*r++);
-				*w++ += (DWORD)(*r++);
+				*w++ += (tjs_uint32)(*r++);
+				*w++ += (tjs_uint32)(*r++);
+				*w++ += (tjs_uint32)(*r++);
+				*w++ += (tjs_uint32)(*r++);
 			}
 		}
 	}
 
 	struct MinMaxRGBA {
 		struct UnitRGBA {
-			UnitRGBA(DWORD n) : r(n), g(n), b(n), a(n) {}
-			DWORD r, g, b, a;
+			UnitRGBA(tjs_uint32 n) : r(n), g(n), b(n), a(n) {}
+			tjs_uint32 r, g, b, a;
 		} _min, _max;
 		MinMaxRGBA() : _min(0xFFFFFFFF), _max(0) {}
-		inline void setMinMaxR(DWORD n) { setMinMax(n, _min.r, _max.r); }
-		inline void setMinMaxG(DWORD n) { setMinMax(n, _min.g, _max.g); }
-		inline void setMinMaxB(DWORD n) { setMinMax(n, _min.b, _max.b); }
-		inline void setMinMaxA(DWORD n) { setMinMax(n, _min.a, _max.a); }
-		inline BYTE getNormalizeR(DWORD n) { return getNormalize(n, _min.r, _max.r); }
-		inline BYTE getNormalizeG(DWORD n) { return getNormalize(n, _min.g, _max.g); }
-		inline BYTE getNormalizeB(DWORD n) { return getNormalize(n, _min.b, _max.b); }
-		inline BYTE getNormalizeA(DWORD n) { return getNormalize(n, _min.a, _max.a); }
+		inline void setMinMaxR(tjs_uint32 n) { setMinMax(n, _min.r, _max.r); }
+		inline void setMinMaxG(tjs_uint32 n) { setMinMax(n, _min.g, _max.g); }
+		inline void setMinMaxB(tjs_uint32 n) { setMinMax(n, _min.b, _max.b); }
+		inline void setMinMaxA(tjs_uint32 n) { setMinMax(n, _min.a, _max.a); }
+		inline tjs_uint8 getNormalizeR(tjs_uint32 n) { return getNormalize(n, _min.r, _max.r); }
+		inline tjs_uint8 getNormalizeG(tjs_uint32 n) { return getNormalize(n, _min.g, _max.g); }
+		inline tjs_uint8 getNormalizeB(tjs_uint32 n) { return getNormalize(n, _min.b, _max.b); }
+		inline tjs_uint8 getNormalizeA(tjs_uint32 n) { return getNormalize(n, _min.a, _max.a); }
 	private:
-		inline void setMinMax(DWORD n, DWORD &min, DWORD &max) {
+		inline void setMinMax(tjs_uint32 n, tjs_uint32 &min, tjs_uint32 &max) {
 			if (n < min) min = n;
 			if (n > max) max = n;
 		}
-		inline BYTE getNormalize(DWORD n, DWORD min, DWORD max) {
+		inline tjs_uint8 getNormalize(tjs_uint32 n, tjs_uint32 min, tjs_uint32 max) {
 			if (min >= max) return 0xFF;
 			if (n < min) n = min;
 			if (n > max) n = max;
-			return (BYTE)((n - min) * 255 / (max - min));
+			return (tjs_uint8)((n - min) * 255 / (max - min));
 		}
 	};
 	bool _stat(MinMaxRGBA &m) {
 		for (size_t y = 0; y < height; y++) {
-			const DWORD* r = buffer + width*4 * y;
+			const tjs_uint32* r = buffer + width*4 * y;
 			for (size_t x = 0; x < width; x++) {
 				m.setMinMaxB(*r++);
 				m.setMinMaxG(*r++);
@@ -110,7 +110,7 @@ struct   LongExposure {
 		if (curw != width || curh != height)
 			TVPThrowExceptionMessage(TJS_W("LongExposure.copy: invalid layer size"));
 
-		BYTE *ptr = 0;
+		tjs_uint8 *ptr = 0;
 		long pitch = 0;
 		if (!GetLayerImageForWrite(self, ptr, pitch))
 			TVPThrowExceptionMessage(TJS_W("LongExposure.copy: invalid layer image"));
@@ -138,8 +138,8 @@ struct   LongExposure {
 			break;
 		}
 		for (size_t y = 0; y < height; y++) {
-			const DWORD* r = buffer + width*4 * y;
-			BYTE* w = ptr + pitch * y;
+			const tjs_uint32* r = buffer + width*4 * y;
+			tjs_uint8* w = ptr + pitch * y;
 			for (size_t x = 0; x < width; x++) {
 				*w++ = m.getNormalizeB(*r++);
 				*w++ = m.getNormalizeG(*r++);
@@ -157,7 +157,7 @@ struct   LongExposure {
 
 private:
 	iTJSDispatch2 *self;
-	DWORD *buffer;
+	tjs_uint32 *buffer;
 	size_t width, height;
 
 	static iTJSDispatch2 *LayerClass;
@@ -174,7 +174,7 @@ private:
 		h = (size_t)lh;
 		return true;
 	}
-	static bool GetLayerImage(iTJSDispatch2 *lay, const BYTE* &ptr, long &pitch) {
+	static bool GetLayerImage(iTJSDispatch2 *lay, const tjs_uint8* &ptr, long &pitch) {
 		static ttstr mainImageBufferPitch(TJS_W("mainImageBufferPitch"));
 		static ttstr mainImageBuffer(TJS_W("mainImageBuffer"));
 
@@ -182,10 +182,10 @@ private:
 		if ((lpitch = LayerPropGet(lay, mainImageBufferPitch)) == 0 ||
 			(lptr   = LayerPropGet(lay, mainImageBuffer)) == 0) return false;
 		pitch = (long)lpitch;
-		ptr = reinterpret_cast<const BYTE*>(lptr);
+		ptr = reinterpret_cast<const tjs_uint8*>(lptr);
 		return true;
 	}
-	static bool GetLayerImageForWrite(iTJSDispatch2 *lay, BYTE* &ptr, long &pitch) {
+	static bool GetLayerImageForWrite(iTJSDispatch2 *lay, tjs_uint8* &ptr, long &pitch) {
 		static ttstr mainImageBufferPitch(TJS_W("mainImageBufferPitch"));
 		static ttstr mainImageBufferForWrite(TJS_W("mainImageBufferForWrite"));
 
@@ -193,7 +193,7 @@ private:
 		if ((lpitch = LayerPropGet(lay, mainImageBufferPitch)) == 0 ||
 			(lptr   = LayerPropGet(lay, mainImageBufferForWrite)) == 0) return false;
 		pitch = (long)lpitch;
-		ptr = reinterpret_cast<BYTE*>(lptr);
+		ptr = reinterpret_cast<tjs_uint8*>(lptr);
 		return true;
 	}
 	static tTVInteger LayerPropGet(iTJSDispatch2 *lay, ttstr &prop, tTVInteger defval = 0) {
