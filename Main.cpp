@@ -1,5 +1,12 @@
-#include <windows.h>
 #include "ncbind.hpp"
+
+#ifndef _WIN32
+typedef tjs_uint8 BYTE;
+typedef tjs_uint16 WORD;
+typedef tjs_uint32 DWORD;
+#endif
+
+#include <cstring>
 
 struct   LongExposure {
 	/**/~LongExposure() { term(); }
@@ -11,7 +18,7 @@ struct   LongExposure {
 			TVPThrowExceptionMessage(TJS_W("LongExposure.init: invalid layer image"));
 		size_t len = width * height * 4;
 		buffer = new DWORD[len];
-		ZeroMemory(buffer, sizeof(DWORD)*len);
+		std::memset(buffer, 0, sizeof(DWORD)*len);
 	}
 
 	void snap() {
